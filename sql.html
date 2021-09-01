@@ -1,0 +1,123 @@
+
+SELECT name from photo JOIN likes ON likes.photo_id = photo.id WHERE likes.user_id = (
+SELECT to_id FROM friends JOIN `user` ON `user`.id = friends.from_id WHERE `user`.id=1 UNION
+SELECT from_id FROM friends JOIN `user` ON `user`.id = friends.to_id WHERE `user`.id=1
+) 
+
+
+SELECT to_id FROM friends JOIN `user` ON `user`.id = friends.from_id WHERE `user`.id=1 UNION
+SELECT from_id FROM friends JOIN `user` ON `user`.id = friends.to_id WHERE `user`.id=1
+
+
+2 7 3 4
+
+1 4 6 8 10 2 3 5
+
+2 3 4 5 6 7
+
+
+SELECT name from photo JOIN likes ON likes.photo_id = photo.id WHERE likes.user_id in
+(SELECT to_id FROM friends JOIN `user` ON `user`.id = friends.from_id WHERE `user`.id=1 UNION
+SELECT from_id FROM friends JOIN `user` ON `user`.id = friends.to_id WHERE `user`.id=1)
+
+
+SELECT name,photo.id,likes.user_id from photo JOIN likes ON likes.photo_id = photo.id 
+	WHERE likes.user_id in (SELECT to_id FROM friends JOIN `user` ON `user`.id = friends.from_id WHERE `user`.id=1 UNION
+SELECT from_id FROM friends JOIN `user` ON `user`.id = friends.to_id WHERE `user`.id=1)
+
+
+2417356
+
+135647 21 21 21
+
+
+SELECT to_id FROM friends LEFT JOIN `user` ON `user`.id = friends.from_id WHERE `user`.id in (SELECT to_id FROM friends JOIN `user` ON `user`.id = friends.from_id WHERE `user`.id=1 UNION
+SELECT from_id FROM friends LEFT JOIN `user` ON `user`.id = friends.to_id WHERE `user`.id=1) UNION
+SELECT from_id FROM friends LEFT JOIN `user` ON `user`.id = friends.to_id WHERE `user`.id in (SELECT to_id FROM friends JOIN `user` ON `user`.id = friends.from_id WHERE `user`.id=1 UNION
+SELECT from_id FROM friends LEFT JOIN `user` ON `user`.id = friends.to_id WHERE `user`.id=1)
+
+
+
+SELECT name,likes.user_id from photo JOIN likes ON likes.photo_id = photo.id WHERE likes.user_id in 
+(SELECT to_id FROM friends  JOIN `user` ON `user`.id = friends.from_id WHERE `user`.id in 
+(SELECT to_id FROM friends JOIN `user` ON `user`.id = friends.from_id WHERE `user`.id=1 UNION
+SELECT from_id FROM friends  JOIN `user` ON `user`.id = friends.to_id WHERE `user`.id=1) UNION
+SELECT from_id FROM friends JOIN `user` ON `user`.id = friends.to_id WHERE `user`.id in 
+(SELECT to_id FROM friends JOIN `user` ON `user`.id = friends.from_id WHERE `user`.id=1 UNION
+SELECT from_id FROM friends JOIN `user` ON `user`.id = friends.to_id WHERE `user`.id=1)
+) AND likes.user_id <> 1
+
+
+SELECT CASE
+    WHEN from_id <> 1 THEN from_id
+    WHEN to_id <> 1 THEN to_id
+END AS id
+FROM friends 
+JOIN `user` ON `user`.id = friends.from_id OR `user`.id = friends.to_id 
+WHERE `user`.id=1
+
+
+
+SELECT
+	`name`,
+	likes.user_id
+FROM
+	photo
+JOIN likes ON likes.photo_id = photo.id
+WHERE
+	likes.user_id IN (
+		SELECT
+			CASE
+		WHEN from_id <> 1 THEN
+			from_id
+		WHEN to_id <> 1 THEN
+			to_id
+		END AS id
+		FROM
+			friends
+		JOIN `user` ON `user`.id = friends.from_id
+		OR `user`.id = friends.to_id
+		WHERE
+			`user`.id IN (
+				SELECT
+					CASE
+				WHEN from_id <> 1 THEN
+					from_id
+				WHEN to_id <> 1 THEN
+					to_id
+				END AS id
+				FROM
+					friends
+				JOIN `user` ON `user`.id = friends.from_id
+				OR `user`.id = friends.to_id
+				WHERE
+					`user`.id = 1
+			) 
+		GROUP BY
+			id
+	)
+AND likes.user_id <> 1
+
+
+
+
+
+
+
+
+
+
+SELECT CASE
+			WHEN from_id <> 1 THEN from_id
+			WHEN to_id <> 1 THEN to_id
+			END AS id
+FROM friends
+JOIN `user` ON `user`.id = friends.from_id
+OR `user`.id = friends.to_id
+WHERE `user`.id IN ( SELECT CASE
+									WHEN from_id <> 1 THEN	from_id
+									WHEN to_id <> 1 THEN to_id
+									END AS id
+		FROM	friends	JOIN `user` ON `user`.id = friends.from_id 
+												OR `user`.id = friends.to_id WHERE `user`.id = 1)
+GROUP BY id
